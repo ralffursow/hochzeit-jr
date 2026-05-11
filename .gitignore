@@ -1,0 +1,6 @@
+node_modules/
+.claude/
+monterchi_serif/
+OnlineWebFonts_COM_*/
+*.pdf
+package-lock.json
