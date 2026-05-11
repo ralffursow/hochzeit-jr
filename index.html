@@ -802,8 +802,11 @@ section { padding: 110px 2rem; }
 .form-success { display: none; text-align: center; padding: 2rem 0; }
 .form-success.show { display: block; }
 .form-success .ss {
-  font-family: var(--font-script);
-  font-size: 3.8rem;
+  font-family: var(--font-serif);
+  font-size: clamp(2.8rem, 6vw, 3.8rem);
+  font-weight: 300;
+  font-style: italic;
+  letter-spacing: 0.06em;
   color: var(--blue-accent);
   display: block;
   margin-bottom: 0.6rem;
@@ -1102,7 +1105,7 @@ footer {
         <div class="fg">
           <label for="diet-0">Ernährung</label>
           <select id="diet-0" name="ernaehrung_0" class="diet-select">
-            <option value="fleisch">Fleisch</option>
+            <option value="keine_praeferenz">Keine Präferenz</option>
             <option value="vegetarisch">Vegetarisch</option>
             <option value="andere">Andere (z. B. Vegan, Allergien, etc.)</option>
           </select>
@@ -1132,8 +1135,8 @@ footer {
         <button type="submit" class="btn-submit">Antwort absenden</button>
       </form>
       <div class="form-success" id="formSuccess">
-        <span class="ss">Danke!</span>
-        <p>Wir haben eure Antwort erhalten und freuen uns riesig auf euch.</p>
+        <span class="ss" id="formSuccessTitle">Danke!</span>
+        <p id="formSuccessMsg"></p>
       </div>
     </div>
   </div>
@@ -1155,7 +1158,7 @@ footer {
         <span class="contact-name">Miles Ellmers</span>
       </div>
     </div>
-    <p class="contact-hint">Kontaktdaten der Einladung zu entnehmen</p>
+    <p class="contact-hint">Kontaktdaten sind bitte der Einladung zu entnehmen</p>
   </div>
 </section>
 
@@ -1271,7 +1274,7 @@ document.getElementById('addPerson').addEventListener('click', () => {
     <div class="fg">
       <label>Ernährung</label>
       <select name="person_${idx}_ernaehrung" class="diet-select">
-        <option value="fleisch">Fleisch</option>
+        <option value="keine_praeferenz">Keine Präferenz</option>
         <option value="vegetarisch">Vegetarisch</option>
         <option value="andere">Andere (z. B. Vegan, Allergien, etc.)</option>
       </select>
@@ -1295,10 +1298,31 @@ if (form) {
     }
     btn.textContent = 'Wird gesendet …';
     btn.disabled = true;
-    setTimeout(() => {
-      form.style.display = 'none';
-      document.getElementById('formSuccess').classList.add('show');
-    }, 900);
+    const antwort = form.querySelector('input[name="antwort"]:checked')?.value;
+    const isZusage = antwort === 'Zusage';
+    const data = new FormData(form);
+    fetch('https://formspree.io/f/mgodrppk', {
+      method: 'POST',
+      body: data,
+      headers: { 'Accept': 'application/json' }
+    }).then(res => {
+      if (res.ok) {
+        document.getElementById('formSuccessTitle').textContent = isZusage ? 'Danke!' : 'Schade!';
+        document.getElementById('formSuccessMsg').textContent = isZusage
+          ? 'Wir haben eure Antwort erhalten und freuen uns riesig auf euch.'
+          : 'Wir haben deine Absage erhalten. Das ist sehr schade — wir werden an dich denken!';
+        form.style.display = 'none';
+        document.getElementById('formSuccess').classList.add('show');
+      } else {
+        btn.textContent = 'Antwort absenden';
+        btn.disabled = false;
+        alert('Es gab einen Fehler beim Senden. Bitte versuche es erneut.');
+      }
+    }).catch(() => {
+      btn.textContent = 'Antwort absenden';
+      btn.disabled = false;
+      alert('Es gab einen Fehler beim Senden. Bitte versuche es erneut.');
+    });
   });
 }
 </script>
